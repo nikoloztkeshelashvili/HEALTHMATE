@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <h2>{{ instructor.name }} {{ instructor.surname }}</h2>
+    <div class="user-info">
+        <div class="dropdown">
+            <div class="user-icon">👤</div>
+            <div class="dropdown-content">
+                <a href="{{ url_for('logout') }}">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav" style="margin-bottom: 30px; border-bottom: 2px solid #e9ecef;">
+    <a href="{{ url_for('instructor_students') }}" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">Students</a>
+    <a href="{{ url_for('bmi_calculator') }}" class="active" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: white; background-color: #007bff; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMI Calculator</a>
+    <a href="{{ url_for('bmr_calculator') }}" style="display: inline-block; padding: 12px 24px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMR Calculator</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto; background-color: #f8f9fa; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h3 style="margin-top: 0; margin-bottom: 25px; text-align: center; color: #343a40;">BMI Calculator</h3>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="weight" style="font-weight: 600;">Weight (kg):</label>
+            <input type="number" id="weight" name="weight" step="0.1" required style="box-sizing: border-box;">
+        </div>
+
+        <div class="form-group">
+            <label for="height" style="font-weight: 600;">Height (cm):</label>
+            <input type="number" id="height" name="height" step="0.1" required style="box-sizing: border-box;">
+        </div>
+
+        <button type="submit" style="width: 100%; margin-top: 10px;">Calculate BMI</button>
+    </form>
+
+    <div style="margin-top: 30px; padding: 25px; background-color: white; border-radius: 8px; border: 1px solid #e9ecef;">
+        {% if bmi_result %}
+        <h3 style="margin-top: 0; text-align: center;">BMI Result: {{ bmi_result }}</h3>
+
+        <div style="margin: 20px 0; text-align: center;">
+            <p style="font-size: 18px; margin: 0;">
+                {% if bmi_result <= 18.5 %}
+                    <span style="color: #17a2b8; font-weight: bold;">Underweight</span>
+                {% elif bmi_result <= 25 %}
+                    <span style="color: #28a745; font-weight: bold;">Normal weight</span>
+                {% elif bmi_result <= 30 %}
+                    <span style="color: #ffc107; font-weight: bold;">Overweight</span>
+                {% elif bmi_result <= 40 %}
+                    <span style="color: #fd7e14; font-weight: bold;">Obese</span>
+                {% else %}
+                    <span style="color: #dc3545; font-weight: bold;">Severe obesity</span>
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        {% set min_bmi = 15 %}
+        {% set max_bmi = 45 %}
+        {% set scale_range = max_bmi - min_bmi %}
+
+        {% set pos_18_5 = ((18.5 - min_bmi) / scale_range * 100) %}
+        {% set pos_25 = ((25 - min_bmi) / scale_range * 100) %}
+        {% set pos_30 = ((30 - min_bmi) / scale_range * 100) %}
+        {% set pos_40 = ((40 - min_bmi) / scale_range * 100) %}
+
+        <div style="position: relative; height: 50px; margin: 30px 0;">
+            <div style="height: 30px; background: linear-gradient(to right,
+                #17a2b8 0%, #17a2b8 {{ pos_18_5 }}%,
+                #28a745 {{ pos_18_5 }}%, #28a745 {{ pos_25 }}%,
+                #ffc107 {{ pos_25 }}%, #ffc107 {{ pos_30 }}%,
+                #fd7e14 {{ pos_30 }}%, #fd7e14 {{ pos_40 }}%,
+                #dc3545 {{ pos_40 }}%); border-radius: 15px;"></div>
+
+            {% if bmi_result %}
+            {% set pointer_pos = ((bmi_result - min_bmi) / scale_range * 100) %}
+            {% set pointer_position = [0, [100, pointer_pos]|min]|max %}
+            <div style="position: absolute; top: 25px; left: {{ pointer_position }}%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 15px solid #000;"></div>
+            {% endif %}
+
+            <div style="position: absolute; top: 35px; width: 100%; font-size: 12px; color: #666;">
+                <span style="position: absolute; left: 0%;">15</span>
+                <span style="position: absolute; left: {{ pos_18_5 }}%; transform: translateX(-50%);">18.5</span>
+                <span style="position: absolute; left: {{ pos_25 }}%; transform: translateX(-50%);">25</span>
+                <span style="position: absolute; left: {{ pos_30 }}%; transform: translateX(-50%);">30</span>
+                <span style="position: absolute; left: {{ pos_40 }}%; transform: translateX(-50%);">40</span>
+                <span style="position: absolute; right: 0%; transform: translateX(50%);">45</span>
+            </div>
+
+            <div style="position: absolute; top: -20px; width: 100%; display: flex; font-size: 11px;">
+                <span style="width: {{ pos_18_5 }}%; text-align: center; color: #17a2b8;">Under</span>
+                <span style="width: {{ pos_25 - pos_18_5 }}%; text-align: center; color: #28a745;">Normal</span>
+                <span style="width: {{ pos_30 - pos_25 }}%; text-align: center; color: #ffc107;">Over</span>
+                <span style="width: {{ pos_40 - pos_30 }}%; text-align: center; color: #fd7e14;">Obese</span>
+                <span style="width: {{ 100 - pos_40 }}%; text-align: center; color: #dc3545;">Severe</span>
+            </div>
+        </div>
+
+        {% if bmi_result and height %}
+        {% set ideal_weight = 25 * ((height/100) ** 2) %}
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; text-align: center;">
+            <p style="margin: 0; font-size: 16px; color: #495057;">
+                <strong>Ideal weight for health:</strong> {{ "%.1f"|format(ideal_weight) }} kg
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d;">
+                (Based on BMI = 25 for optimal health)
+            </p>
+        </div>
+        {% else %}
+        <div style="margin-top: 10px; text-align: center;">
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: #6c757d;">
+                (Based on BMI = 25 for optimal health)
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.nav a:hover {
+    background-color: #e9ecef;
+}
+</style>
+{% endblock %}
