@@ -5,51 +5,45 @@ import random
 import string
 
 app = Flask(__name__)
-
-# Configure secret key used for sessions and flashing messages
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-#Set up the database URI - using SQLite in this case
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthmate.db'
-# Disable tracking modifications of objects to save resources
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize SQLAlchemy with the Flask app
 db = SQLAlchemy(app)
 
-# Define the Student model with fields for personal and health data
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    unique_id = db.Column(db.String(6), unique=True, nullable=False) #unique student ID
+    unique_id = db.Column(db.String(6), unique=True, nullable=False)
     name = db.Column(db.String(50), nullable=False)
     surname = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False) #unique email
+    email = db.Column(db.String(120), unique=True, nullable=False)
     birth_date = db.Column(db.Date, nullable=False)
     height = db.Column(db.Float, nullable=False)
     weight = db.Column(db.Float, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     goal_weight = db.Column(db.Float, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    weight_records = db.relationship('WeightRecord', backref='student', lazy=True) # One-to-many relation to weight logs
+    weight_records = db.relationship('WeightRecord', backref='student', lazy=True)
 
 
 class Instructor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     surname = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False) #unique email
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    students = db.relationship('StudentInstructor', backref='instructor', lazy=True) # Relation to associated students
+    students = db.relationship('StudentInstructor', backref='instructor', lazy=True)
 
-# Define the WeightRecord model for storing historical weight entries
+
 class WeightRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False) # Foreign key to student
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
     weight = db.Column(db.Float, nullable=False)
     bmi = db.Column(db.Float, nullable=False)
     bmr = db.Column(db.Float, nullable=False)
 
-# Define the StudentInstructor relationship table
+
 class StudentInstructor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
@@ -106,15 +100,12 @@ def register_student():
         goal_weight = float(request.form['goal_weight'])
         password = request.form['password']
 
-         # Check if email already exists in student or instructor tables
         if Student.query.filter_by(email=email).first() or Instructor.query.filter_by(email=email).first():
             flash('Email already registered!', 'error')
             return redirect(url_for('register_student'))
 
-        # Generate unique student ID
         unique_id = generate_unique_id()
 
-        # Create and save new student object
         student = Student(
             unique_id=unique_id,
             email=email,
@@ -159,7 +150,6 @@ def register_instructor():
         password = request.form['password']
         email = request.form['email']
 
-        # Ensure email is not already taken
         if Instructor.query.filter_by(email=email).first() or Student.query.filter_by(email=email).first():
             flash('Email already registered!', 'error')
             return redirect(url_for('register_instructor'))
@@ -179,19 +169,17 @@ def register_instructor():
 
     return render_template('register_instructor.html')
 
-# Route for login handling (both students and instructors)
+
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
 
-    # Check if Student credentials match
     student = Student.query.filter_by(email=email, password=password).first()
     if student:
         session['student_id'] = student.id
         return redirect(url_for('student_dashboard'))
 
-    # Check if instructor credentials match
     instructor = Instructor.query.filter_by(email=email, password=password).first()
     if instructor:
         session['instructor_id'] = instructor.id
@@ -209,7 +197,7 @@ def student_dashboard():
     student = Student.query.get(session['student_id'])
 
     if request.method == 'POST':
-        weight = float(request.form['weight']) # New weight entry from form
+        weight = float(request.form['weight'])
         age = calculate_age(student.birth_date)
         bmi = calculate_bmi(weight, student.height)
         bmr = calculate_bmr(student.gender, weight, student.height, age)
@@ -227,12 +215,11 @@ def student_dashboard():
         flash('Weight record added successfully!', 'success')
         return redirect(url_for('student_dashboard'))
 
-    # Retrieve all weight records for this student
     weight_records = WeightRecord.query.filter_by(student_id=student.id).all()
 
     return render_template('student_dashboard.html', student=student, weight_records=weight_records)
 
-# Route to update student's profile (height, goal weight)
+
 @app.route('/update_student_profile', methods=['GET', 'POST'])
 def update_student_profile():
     if 'student_id' not in session:
@@ -253,7 +240,6 @@ def update_student_profile():
     return render_template('update_student_profile.html', student=student)
 
 
-# Redirects to instructor’s student list
 @app.route('/instructor_dashboard')
 def instructor_dashboard():
     if 'instructor_id' not in session:
@@ -300,7 +286,6 @@ def bmr_calculator():
                            activity_factor=activity_factor)
 
 
-# Route to manage instructor’s students
 @app.route('/instructor_students', methods=['GET', 'POST'])
 def instructor_students():
     if 'instructor_id' not in session:
@@ -312,13 +297,13 @@ def instructor_students():
         student_id = request.form['student_id']
         student = Student.query.filter_by(unique_id=student_id).first()
 
-        if student: # Check if student already added
+        if student:
             existing_relation = StudentInstructor.query.filter_by(
                 student_id=student.id,
                 instructor_id=instructor.id
             ).first()
 
-            if not existing_relation:# Create relationship between student and instructor
+            if not existing_relation:
                 relation = StudentInstructor(student_id=student.id, instructor_id=instructor.id)
                 db.session.add(relation)
                 db.session.commit()
@@ -328,14 +313,13 @@ def instructor_students():
         else:
             flash('Student not found!', 'error')
 
-    # Retrieve all students assigned to this instructor
     students = db.session.query(Student).join(StudentInstructor).filter(
         StudentInstructor.instructor_id == instructor.id
     ).all()
 
     return render_template('instructor_dashboard.html', students=students, instructor=instructor)
 
-# View a specific student’s data from instructor's side
+
 @app.route('/student_details/<int:student_id>')
 def student_details(student_id):
     if 'instructor_id' not in session:
@@ -360,7 +344,6 @@ def student_details(student_id):
     return render_template('student_details.html', student=student, weight_records=weight_records, date=date_obj)
 
 
-# Allow a student to delete a weight record (except their first one)
 @app.route('/delete_weight_record/<int:record_id>')
 def delete_weight_record(record_id):
     if 'student_id' not in session:

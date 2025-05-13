@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="font-size: 32px;">
+            {% if student.gender|lower == 'male' %}
+            👨
+            {% else %}
+            👩
+            {% endif %}
+        </div>
+        <div>
+            <h2 style="margin: 0;">{{ student.name }} {{ student.surname }}</h2>
+            <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 14px;">ID: {{ student.unique_id }}</p>
+        </div>
+    </div>
+    <div>
+        <a href="{{ url_for('instructor_students') }}">
+            <button style="background-color: #6c757d;">Back to Students</button>
+        </a>
+    </div>
+</div>
+
+<div style="background-color: #f8f9fa; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Age</p>
+            <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">{{ (date.today() - student.birth_date).days // 365 }} years</p>
+        </div>
+        <div style="background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Height</p>
+            <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">{{ student.height }} cm</p>
+        </div>
+        <div style="background-color: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Goal Weight</p>
+            <p style="margin: 5px 0 0 0; font-weight: bold; font-size: 16px;">{{ student.goal_weight }} kg</p>
+        </div>
+    </div>
+</div>
+
+<h3 style="margin-bottom: 20px; color: #343a40;">Weight History</h3>
+<div style="overflow-y: auto; max-height: 400px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <table style="margin: 0; width: 100%;">
+        <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
+            <tr>
+                <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">Date</th>
+                <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">Weight (kg)</th>
+                <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">BMI</th>
+                <th style="padding: 12px 15px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6;">BMR</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in weight_records|reverse %}
+            <tr style="border-bottom: 1px solid #f1f3f4;">
+                <td style="padding: 12px 15px; color: #495057;">{{ record.date.strftime('%Y-%m-%d') }}</td>
+                <td style="padding: 12px 15px; color: #495057;">{{ record.weight }}</td>
+                <td style="padding: 12px 15px; color: #495057;">{{ record.bmi }}</td>
+                <td style="padding: 12px 15px; color: #495057;">{{ record.bmr }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not weight_records %}
+    <p style="text-align: center; color: #6c757d; padding: 40px; margin: 0;">No weight records available for this student.</p>
+    {% endif %}
+</div>
+
+<style>
+tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+</style>
+{% endblock %}

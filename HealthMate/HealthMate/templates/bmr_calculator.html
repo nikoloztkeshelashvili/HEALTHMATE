@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <h2>{{ instructor.name }} {{ instructor.surname }}</h2>
+    <div class="user-info">
+        <div class="dropdown">
+            <div class="user-icon">👤</div>
+            <div class="dropdown-content">
+                <a href="{{ url_for('logout') }}">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav" style="margin-bottom: 30px; border-bottom: 2px solid #e9ecef;">
+    <a href="{{ url_for('instructor_students') }}" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">Students</a>
+    <a href="{{ url_for('bmi_calculator') }}" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMI Calculator</a>
+    <a href="{{ url_for('bmr_calculator') }}" class="active" style="display: inline-block; padding: 12px 24px; text-decoration: none; color: white; background-color: #007bff; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMR Calculator</a>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto; background-color: #f8f9fa; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <h3 style="margin-top: 0; margin-bottom: 25px; text-align: center; color: #343a40;">BMR Calculator</h3>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="gender" style="font-weight: 600;">Gender:</label>
+            <select id="gender" name="gender" required style="box-sizing: border-box;">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="weight" style="font-weight: 600;">Weight (kg):</label>
+            <input type="number" id="weight" name="weight" step="0.1" required style="box-sizing: border-box;">
+        </div>
+
+        <div class="form-group">
+            <label for="height" style="font-weight: 600;">Height (cm):</label>
+            <input type="number" id="height" name="height" step="0.1" required style="box-sizing: border-box;">
+        </div>
+
+        <div class="form-group">
+            <label for="age" style="font-weight: 600;">Age:</label>
+            <input type="number" id="age" name="age" required style="box-sizing: border-box;">
+        </div>
+
+        <div class="form-group">
+            <label for="activity_level" style="font-weight: 600;">Activity Level:</label>
+            <select id="activity_level" name="activity_level" required style="box-sizing: border-box;">
+                <option value="">Select Activity Level</option>
+                <option value="1.2">Sedentary (little or no exercise)</option>
+                <option value="1.375">Lightly active (light exercise 1-3 days/week)</option>
+                <option value="1.55">Moderately active (moderate exercise 3-5 days/week)</option>
+                <option value="1.725">Very active (hard exercise 6-7 days/week)</option>
+                <option value="1.9">Super active (very hard training, physical job)</option>
+            </select>
+        </div>
+
+        <button type="submit" style="width: 100%; margin-top: 10px;">Calculate BMR</button>
+    </form>
+
+    {% if bmr_result and activity_factor %}
+    <div style="margin-top: 30px; padding: 25px; background-color: white; border-radius: 8px; border: 1px solid #e9ecef;">
+        <h3 style="margin-top: 0; text-align: center;">Results</h3>
+
+        <div style="margin: 20px 0;">
+            <p style="font-size: 18px; margin: 10px 0; text-align: center;">
+                <strong>Basal Metabolic Rate (BMR):</strong> {{ bmr_result|round|int }} calories/day
+            </p>
+            <p style="font-size: 14px; margin: 5px 0; text-align: center; color: #6c757d;">
+                Calories burned at rest
+            </p>
+        </div>
+
+        <div style="margin-top: 30px; border-top: 1px solid #e9ecef; padding-top: 20px;">
+            <h4 style="margin-top: 0; text-align: center; color: #343a40;">Daily Calorie Recommendations</h4>
+
+            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 15px;">
+                {% set maintenance_calories = bmr_result * activity_factor %}
+
+                <p style="margin: 10px 0; font-size: 16px;">
+                    <strong style="color: #007bff;">Maintenance:</strong> {{ maintenance_calories|round|int }} calories/day
+                </p>
+                <p style="margin: 10px 0; font-size: 16px;">
+                    <strong style="color: #28a745;">Weight Loss:</strong> {{ (maintenance_calories - 500)|round|int }} calories/day
+                    <span style="font-size: 12px; color: #6c757d;">(≈0.5 kg/week)</span>
+                </p>
+                <p style="margin: 10px 0; font-size: 16px;">
+                    <strong style="color: #fd7e14;">Weight Gain:</strong> {{ (maintenance_calories + 500)|round|int }} calories/day
+                    <span style="font-size: 12px; color: #6c757d;">(≈0.5 kg/week)</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.nav a:hover {
+    background-color: #e9ecef;
+}
+</style>
+{% endblock %}

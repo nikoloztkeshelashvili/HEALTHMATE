@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# HEALTHMATE
-=======
 # HealthMate
 
 A simple web application for student health tracking with instructor management.
@@ -40,4 +37,3 @@ python app.py
 3. Both can use the calculators and track health data
 
 Database is created automatically in `healthmate.db`
->>>>>>> 9cbaafe (Final commit)

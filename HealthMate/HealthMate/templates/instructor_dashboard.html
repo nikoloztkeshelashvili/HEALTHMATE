@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <h2>{{ instructor.name }} {{ instructor.surname }}</h2>
+    <div class="user-info">
+        <div class="dropdown">
+            <div class="user-icon">👤</div>
+            <div class="dropdown-content">
+                <a href="{{ url_for('logout') }}">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nav" style="margin-bottom: 30px; border-bottom: 2px solid #e9ecef;">
+    <a href="{{ url_for('instructor_students') }}" class="active" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: white; background-color: #007bff; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">Students</a>
+    <a href="{{ url_for('bmi_calculator') }}" style="display: inline-block; padding: 12px 24px; margin-right: 8px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMI Calculator</a>
+    <a href="{{ url_for('bmr_calculator') }}" style="display: inline-block; padding: 12px 24px; text-decoration: none; color: #333; background-color: #f8f9fa; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;">BMR Calculator</a>
+</div>
+
+<div style="text-align: center; margin-bottom: 30px;">
+    <form method="POST" style="display: inline-flex; align-items: center; gap: 15px; justify-content: center;">
+        <span style="font-size: 16px;">Add Student:</span>
+        <input type="text" id="student_id" name="student_id" placeholder="Student ID" required style="width: 150px; box-sizing: border-box; margin-bottom: 0;">
+        <button type="submit">Add</button>
+    </form>
+</div>
+
+<div style="overflow-y: auto; max-height: 500px; background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+    {% for student in students|reverse %}
+    <div style="background-color: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="font-size: 24px;">
+                {% if student.gender|lower == 'male' %}
+                👨
+                {% else %}
+                👩
+                {% endif %}
+            </div>
+            <div>
+                <h4 style="margin: 0; font-size: 16px;">{{ student.name }} {{ student.surname }}</h4>
+                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">ID: {{ student.unique_id }}</p>
+            </div>
+        </div>
+        <a href="{{ url_for('student_details', student_id=student.id) }}">
+            <button style="background-color: #28a745;">Details</button>
+        </a>
+    </div>
+    {% endfor %}
+
+    {% if not students %}
+    <p style="text-align: center; color: #666; padding: 20px;">No students added yet. Use the form above to add students by their ID.</p>
+    {% endif %}
+</div>
+{% endblock %}
